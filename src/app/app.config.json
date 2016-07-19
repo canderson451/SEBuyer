@@ -1,6 +1,6 @@
 {
   "appname": "SEBuyer",
-  "ocscope": "DevCenterImpersonate FullAccess BuyerAdmin BuyerReader",
+  "ocscope": "FullAccess BuyerAdmin BuyerReader",
   "clientid": "4E927EF7-4628-4C24-9EED-A2F4987ECC55",
   "buyerid": "sebuyer",
   "environment": "prod",
