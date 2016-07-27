@@ -136,7 +136,7 @@ function CatalogController(Order, BannerCatalog, Catalog) {
     vm.toggleTree = function() {
         vm.showTree = !vm.showTree;
     };
-    vm.categories = Catalog
+    vm.categories = Catalog;
     vm.bannerCategories = BannerCatalog.banners;
     vm.nonBannerCategories = BannerCatalog.nonBanners;
 }
