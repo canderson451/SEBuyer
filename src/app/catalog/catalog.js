@@ -24,7 +24,12 @@ function CatalogConfig($stateProvider) {
             controllerAs: 'catalog',
             resolve: {
                 Catalog: function($q, OrderCloud) {
-                    return OrderCloud.Me.ListCategories(null, 1);
+                    var dfd = $q.defer();
+                    OrderCloud.Me.ListCategories(null, 1)
+                        .then(function(categories){
+                            dfd.resolve(categories.Items);
+                        });
+                    return dfd.promise
                 },
                 Order: function($q, CurrentOrder) {
                     var dfd = $q.defer();
@@ -35,6 +40,35 @@ function CatalogConfig($stateProvider) {
                         .catch(function() {
                             dfd.resolve(null);
                         });
+                    return dfd.promise;
+                },
+                BannerGroup: function(OrderCloud, $q){
+                    var dfd = $q.defer();
+                    var queue = [];
+                    OrderCloud.Me.ListUserGroups()
+                        .then(function(data){
+                            angular.forEach(data.Items, function(userGroup){
+                                queue.push(userGroup.Name)
+                            });
+                            dfd.resolve(queue)
+                        });
+                    return dfd.promise;
+                },
+                BannerCatalog: function(Catalog, BannerGroup, $q){
+                    var dfd = $q.defer();
+                    var banners = [];
+                    var nonBanners =[];
+                    var AllCategories = {};
+                    angular.forEach(Catalog, function(category){
+                        if(category.xp && category.xp.image && category.xp.image.Banner && (BannerGroup.indexOf(category.xp.image.Banner) > -1) ){
+                            banners.push(category)
+                        }else{
+                            nonBanners.push(category)
+                        }
+                    });
+                    AllCategories.banners = banners;
+                    AllCategories.nonBanners = nonBanners;
+                    dfd.resolve(AllCategories);
                     return dfd.promise;
                 }
             }
@@ -95,14 +129,16 @@ function AddToOrder($q, $rootScope, Underscore, OrderCloud, CurrentOrder, LineIt
 
 
 
-function CatalogController(Catalog, Order) {
+function CatalogController(Order, BannerCatalog, Catalog) {
     var vm = this;
     vm.showTree = true;
     vm.currentOrder = Order;
     vm.toggleTree = function() {
         vm.showTree = !vm.showTree;
     };
-    vm.categories = Catalog;
+    vm.categories = Catalog
+    vm.bannerCategories = BannerCatalog.banners;
+    vm.nonBannerCategories = BannerCatalog.nonBanners;
 }
 
 function CategoryListDirective() {
@@ -110,7 +146,8 @@ function CategoryListDirective() {
         restrict: 'E',
         templateUrl: 'catalog/templates/category.list.tpl.html',
         scope: {
-            categorylist: '='
+            bannerlist: '=',
+            nonbannerlist:'='
         }
     };
 }
